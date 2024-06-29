@@ -3,6 +3,7 @@ import React, { useState } from "react";
 
 export default function FurnitureCard({ furniture }) {
 	const [showPopup, setShowPopup] = useState(false);
+	const [isLoading, setIsLoading] = useState(false);
 
 	const handleCardClick = () => {
 		setShowPopup(true);
@@ -12,9 +13,34 @@ export default function FurnitureCard({ furniture }) {
 		setShowPopup(false);
 	};
 
-	const handleRent = () => {
-		// TODO: Implement rent functionality
-		console.log("Rent button clicked for:", furniture.name);
+	const handleRent = async () => {
+		setIsLoading(true);
+		try {
+			const response = await fetch('/api/stripe', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					furnitureName: furniture.name,
+					pricePerDay: furniture.pricePerDay,
+					numberOfDays: 1, // Default to 1 day, you might want to add a selector for this
+				}),
+			});
+
+			if (!response.ok) {
+				throw new Error('Network response was not ok');
+			}
+
+			const data = await response.json();
+            window.location.href = data.url; // Redirect to Stripe Checkout
+            
+		} catch (error) {
+			console.error('Error:', error);
+			alert('There was an error processing your request. Please try again.');
+		} finally {
+			setIsLoading(false);
+		}
 	};
 
 	return (
@@ -33,7 +59,7 @@ export default function FurnitureCard({ furniture }) {
 				<div className="my-3 flex flex-col justify-between">
 					<div className="font-bold text-xl mb-2">{furniture.name}</div>
 					<p className="text-gray-700 text-base mb-4">
-						${furniture.pricePerDay} per day
+						₹{furniture.pricePerDay} per day
 					</p>
 					<button
 						className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
@@ -41,8 +67,9 @@ export default function FurnitureCard({ furniture }) {
 							e.stopPropagation();
 							handleRent();
 						}}
+						disabled={isLoading}
 					>
-						Rent
+						{isLoading ? 'Processing...' : 'Rent'}
 					</button>
 				</div>
 			</div>
@@ -72,7 +99,7 @@ export default function FurnitureCard({ furniture }) {
 									Type: {furniture.type}
 								</p>
 								<p className="text-sm text-gray-500 mb-2">
-									Price: ${furniture.pricePerDay} per day
+									Price: ₹{furniture.pricePerDay} per day
 								</p>
 								<p className="text-sm text-gray-500 mb-2">
 									Description: {furniture.description}
@@ -85,8 +112,9 @@ export default function FurnitureCard({ furniture }) {
 								<button
 									className="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 mb-2"
 									onClick={handleRent}
+									disabled={isLoading}
 								>
-									Rent
+									{isLoading ? 'Processing...' : 'Rent'}
 								</button>
 								<button
 									className="px-4 py-2 bg-gray-300 text-gray-700 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
@@ -102,4 +130,3 @@ export default function FurnitureCard({ furniture }) {
 		</div>
 	);
 }
-
