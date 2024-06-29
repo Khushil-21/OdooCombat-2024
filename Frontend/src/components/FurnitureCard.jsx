@@ -1,9 +1,25 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import DatePicker from "react-datepicker"; // Make sure to install this package
+import "react-datepicker/dist/react-datepicker.css";
 
 export default function FurnitureCard({ furniture }) {
 	const [showPopup, setShowPopup] = useState(false);
+	const [showDatePicker, setShowDatePicker] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
+	const [startDate, setStartDate] = useState(new Date());
+	const [endDate, setEndDate] = useState(new Date());
+	const [user, setUser] = useState(null);
+
+	useEffect(() => {
+		const userFromSession = sessionStorage.getItem('user');
+		if (userFromSession) {
+			const parsedUser = JSON.parse(userFromSession);
+			setUser(parsedUser);
+			// Add all user details from session storage to local storage
+			localStorage.setItem('user', JSON.stringify(parsedUser));
+		}
+	}, []);
 
 	const handleCardClick = () => {
 		setShowPopup(true);
@@ -11,10 +27,20 @@ export default function FurnitureCard({ furniture }) {
 
 	const handleClosePopup = () => {
 		setShowPopup(false);
+		setShowDatePicker(false);
 	};
 
 	const handleRent = async () => {
+		if (!user) {
+			window.location.href = '/login'; // Redirect to login page if user is not logged in
+			return;
+		}
+		setShowDatePicker(true);
+	};
+
+	const handleConfirmRent = async () => {
 		setIsLoading(true);
+		const numberOfDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
 		try {
 			const response = await fetch('/api/stripe', {
 				method: 'POST',
@@ -24,7 +50,7 @@ export default function FurnitureCard({ furniture }) {
 				body: JSON.stringify({
 					furnitureName: furniture.name,
 					pricePerDay: furniture.pricePerDay,
-					numberOfDays: 1, // Default to 1 day, you might want to add a selector for this
+					numberOfDays: numberOfDays,
 				}),
 			});
 
@@ -33,8 +59,21 @@ export default function FurnitureCard({ furniture }) {
 			}
 
 			const data = await response.json();
-            window.location.href = data.url; // Redirect to Stripe Checkout
-            
+
+			// Update user history in local storage
+			const userFromStorage = JSON.parse(localStorage.getItem('user') || '{}');
+			const history = userFromStorage.history || [];
+			history.push({
+				furnitureName: furniture.name,
+				startDate: startDate.toISOString(),
+				endDate: endDate.toISOString(),
+				numberOfDays,
+				totalPrice: furniture.pricePerDay * numberOfDays,
+				paymentStatus: 'Pending', // You might want to update this after successful payment
+			});
+			localStorage.setItem('user', JSON.stringify({...userFromStorage, history}));
+
+			window.location.href = data.url; // Redirect to Stripe Checkout
 		} catch (error) {
 			console.error('Error:', error);
 			alert('There was an error processing your request. Please try again.');
@@ -124,6 +163,51 @@ export default function FurnitureCard({ furniture }) {
 								</button>
 							</div>
 						</div>
+					</div>
+				</div>
+			)}
+
+			{showDatePicker && (
+				<div
+					className="fixed z-40 inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full"
+					onClick={() => setShowDatePicker(false)}
+				>
+					<div
+						className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white"
+						onClick={(e) => e.stopPropagation()}
+					>
+						<h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+							Select Rental Period
+						</h3>
+						<div className="mb-4">
+							<label className="block text-sm font-medium text-gray-700">Start Date</label>
+							<DatePicker
+								selected={startDate}
+								onChange={(date) => setStartDate(date)}
+								selectsStart
+								startDate={startDate}
+								endDate={endDate}
+								className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+							/>
+						</div>
+						<div className="mb-4">
+							<label className="block text-sm font-medium text-gray-700">End Date</label>
+							<DatePicker
+								selected={endDate}
+								onChange={(date) => setEndDate(date)}
+								selectsEnd
+								startDate={startDate}
+								endDate={endDate}
+								minDate={startDate}
+								className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+							/>
+						</div>
+						<button
+							className="w-full px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+							onClick={handleConfirmRent}
+						>
+							Confirm Rental
+						</button>
 					</div>
 				</div>
 			)}
