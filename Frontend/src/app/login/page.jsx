@@ -32,6 +32,11 @@ export default function LoginPage() {
 
       if (response.ok) {
         sessionStorage.setItem('user', JSON.stringify(data.user));
+        // Refresh the router to make changes visible
+        router.refresh();
+        // Reload the browser
+        window.location.reload();
+        // Redirect to home page
         router.push('/');
       } else {
         setError(data.message);

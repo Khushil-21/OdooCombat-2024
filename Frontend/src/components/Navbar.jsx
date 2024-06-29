@@ -7,7 +7,7 @@ export default function Navbar() {
   const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
-    const storedUser = sessionStorage.getItem('user');
+    const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
@@ -76,6 +76,10 @@ export default function Navbar() {
                   <p className="text-gray-700"><strong>Number of Days:</strong> {item.numberOfDays}</p>
                   <p className="text-gray-700"><strong>Total Price:</strong> ₹{item.totalPrice}</p>
                   <p className="text-gray-700"><strong>Payment Status:</strong> {item.paymentStatus}</p>
+                  <p className="text-gray-700"><strong>Type:</strong> {item.type}</p>
+                  <p className="text-gray-700"><strong>Price Per Day:</strong> ₹{item.pricePerDay}</p>
+                  <p className="text-gray-700"><strong>Description:</strong> {item.description}</p>
+                  <p className="text-gray-700"><strong>Location:</strong> {item.location}</p>
                 </div>
               ))
             ) : (

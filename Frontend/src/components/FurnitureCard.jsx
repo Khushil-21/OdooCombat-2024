@@ -18,8 +18,10 @@ export default function FurnitureCard({ furniture }) {
 		if (userFromSession) {
 			const parsedUser = JSON.parse(userFromSession);
 			setUser(parsedUser);
-			// Add all user details from session storage to local storage
-			localStorage.setItem('user', JSON.stringify(parsedUser));
+			// Add user details from session storage to local storage
+			const existingUser = JSON.parse(localStorage.getItem('user') || '{}');
+			const updatedUser = { ...existingUser, ...parsedUser };
+			localStorage.setItem('user', JSON.stringify(updatedUser));
 		}
 	}, []);
 
@@ -65,15 +67,22 @@ export default function FurnitureCard({ furniture }) {
 			// Update user history in local storage
 			const userFromStorage = JSON.parse(localStorage.getItem('user') || '{}');
 			const history = userFromStorage.history || [];
-			history.push({
+			const newRentalHistory = {
 				furnitureName: furniture.name,
 				startDate: startDate.toISOString(),
 				endDate: endDate.toISOString(),
 				numberOfDays,
 				totalPrice: furniture.pricePerDay * numberOfDays,
-				paymentStatus: 'Pending', // You might want to update this after successful payment
-			});
-			localStorage.setItem('user', JSON.stringify({...userFromStorage, history}));
+				paymentStatus: 'Pending',
+				type: furniture.type,
+				pricePerDay: furniture.pricePerDay,
+				description: furniture.description,
+				location: furniture.location,
+				image: furniture.image
+			};
+			history.push(newRentalHistory);
+			const updatedUser = { ...userFromStorage, history };
+			localStorage.setItem('user', JSON.stringify(updatedUser));
 
 			window.location.href = data.url; // Redirect to Stripe Checkout
 		} catch (error) {
