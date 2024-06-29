@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import DatePicker from "react-datepicker"; // Make sure to install this package
 import "react-datepicker/dist/react-datepicker.css";
+import { useRouter } from 'next/navigation';
 
 export default function FurnitureCard({ furniture }) {
 	const [showPopup, setShowPopup] = useState(false);
@@ -10,6 +11,7 @@ export default function FurnitureCard({ furniture }) {
 	const [startDate, setStartDate] = useState(new Date());
 	const [endDate, setEndDate] = useState(new Date());
 	const [user, setUser] = useState(null);
+	const router = useRouter();
 
 	useEffect(() => {
 		const userFromSession = sessionStorage.getItem('user');
@@ -30,9 +32,9 @@ export default function FurnitureCard({ furniture }) {
 		setShowDatePicker(false);
 	};
 
-	const handleRent = async () => {
+	const handleRent = () => {
 		if (!user) {
-			window.location.href = '/login'; // Redirect to login page if user is not logged in
+			router.push('/login'); // Redirect to login page if user is not logged in
 			return;
 		}
 		setShowDatePicker(true);
@@ -167,7 +169,7 @@ export default function FurnitureCard({ furniture }) {
 				</div>
 			)}
 
-			{showDatePicker && (
+			{showDatePicker && user && (
 				<div
 					className="fixed z-40 inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full"
 					onClick={() => setShowDatePicker(false)}
