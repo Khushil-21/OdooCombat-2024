@@ -22,7 +22,14 @@ export default function Home() {
 	const [furnitureData, setFurnitureData] = useState([]);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [selectedType, setSelectedType] = useState("all");
-	const furnitureTypes = ["all", "chair", "sofa", "table", "bed", "dinning table"];
+	const furnitureTypes = [
+		"all",
+		"chair",
+		"sofa",
+		"table",
+		"bed",
+		"dinning table",
+	];
 	useEffect(() => {
 		async function fetchData() {
 			const data = await getFurnitureData();
@@ -34,7 +41,9 @@ export default function Home() {
 	const filteredFurniture = furnitureData.filter(
 		(furniture) =>
 			furniture.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-			(selectedType === "" || selectedType === "all" || furniture.type === selectedType)
+			(selectedType === "" ||
+				selectedType === "all" ||
+				furniture.type === selectedType)
 	);
 
 	const handleSearch = (query, type) => {
@@ -44,6 +53,7 @@ export default function Home() {
 
 	return (
 		<main className="">
+			
 			<SearchSection
 				furnitureTypes={furnitureTypes}
 				onSearch={handleSearch}
