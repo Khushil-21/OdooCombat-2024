@@ -46,7 +46,7 @@ export default function FurnitureCard({ furniture }) {
 	return (
 		<div className="p-5">
 			<div
-				className="min-h-[300px] w-[300px] rounded p-3 shadow-lg cursor-pointer"
+				className="min-h-[300px] w-[330px] rounded p-3 shadow-lg cursor-pointer"
 				onClick={handleCardClick}
 			>
 				<div className="relative pb-[75%]">
